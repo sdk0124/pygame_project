@@ -1,3 +1,4 @@
+import os
 import pygame
 
 # 초기화
@@ -16,10 +17,11 @@ pygame.display.set_caption("Pygame")
 clock = pygame.time.Clock()
 
 # 배경화면 설정
-background = pygame.image.load("images/background.png").convert_alpha()
+current_path = os.path.dirname(__file__)
+background = pygame.image.load(os.path.join(current_path, "images/background.png")).convert_alpha()
 
 # 플레이어 캐릭터 불러오기
-player = pygame.image.load("images/player.png").convert_alpha() # 플레이어 캐릭터 이미지 불러오기
+player = pygame.image.load(os.path.join(current_path, "images/player.png")).convert_alpha() # 플레이어 캐릭터 이미지 불러오기
 player_size = player.get_rect().size # 이미지 크기 구하기
 player_width = player_size[0] # 플레이어 가로 크기
 player_height = player_size[1] # 플레이어 세로 크기
@@ -29,7 +31,7 @@ player_x_pos = (screen_width / 2) - (player_width / 2)
 player_y_pos = (screen_height / 2) - (player_height / 2)
 
 # 적 캐릭터 불러오기
-enemy = pygame.image.load("images/enemy.png").convert_alpha() # 적 캐릭터 이미지 불러오기
+enemy = pygame.image.load(os.path.join(current_path, "images/enemy.png")).convert_alpha() # 적 캐릭터 이미지 불러오기
 enemy_size = enemy.get_rect().size # 이미지 크기 구하기
 enemy_width = enemy_size[0] # 적 가로 크기
 enemy_height = enemy_size[1] # 적 세로 크기
@@ -85,6 +87,19 @@ while running:
         player_y_pos = 0
     elif player_y_pos > screen_height - player_height:
         player_y_pos = screen_height - player_height
+
+    # 충돌 처리를 위한 rect 정보 업데이트
+    player_rect = player.get_rect()
+    player_rect.left = player_x_pos
+    player_rect.top = player_y_pos
+
+    enemy_rect = enemy.get_rect()
+    enemy_rect.left = enemy_x_pos
+    enemy_rect.top = enemy_y_pos
+
+    if player_rect.colliderect(enemy_rect):
+        print("충돌했어요")
+        running = False
     
     screen.blit(background, (0, 0)) # 배경화면
     screen.blit(player, (player_x_pos, player_y_pos)) # 플레이어 그리기
