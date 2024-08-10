@@ -21,6 +21,12 @@ player_height = player_size[1] # 플레이어 세로 크기
 player_x_pos = (screen_width / 2) - (player_width / 2)
 player_y_pos = (screen_height / 2) - (player_height / 2)
 
+# 이동할 좌표
+to_x = 0
+to_y = 0
+MOVE_DIST = 2 # 한 번에 얼만큼 움직일 것인가?
+
+
 # 이벤트 루프
 running = True # 게임이 진행중인가?
 while running:
@@ -28,7 +34,40 @@ while running:
         if event.type == pygame.QUIT: # 창을 닫으면 게임 종료
             running = False
 
-    screen.blit(player, (player_x_pos, player_y_pos))
+        if event.type == pygame.KEYDOWN: # 방향키를 눌렀을 시
+            if event.key == pygame.K_LEFT: 
+                to_x -= MOVE_DIST
+            if event.key == pygame.K_RIGHT:
+                to_x += MOVE_DIST
+            if event.key == pygame.K_UP:
+                to_y -= MOVE_DIST
+            if event.key == pygame.K_DOWN:
+                to_y += MOVE_DIST
+
+        if event.type == pygame.KEYUP: # 방향키에서 뗐을 시
+            if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                to_x = 0
+            elif event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                to_y = 0
+            
+    # 플레이어 좌표 계산
+    player_x_pos += to_x
+    player_y_pos += to_y
+
+    # 가로 좌표 경계 계산
+    if player_x_pos < 0:
+        player_x_pos = 0
+    elif player_x_pos > screen_width - player_width:
+        player_x_pos = screen_width - player_width
+    
+    # 세로 좌표 경계 계산
+    if player_y_pos < 0:
+        player_y_pos = 0
+    elif player_y_pos > screen_height - player_height:
+        player_y_pos = screen_height - player_height
+    
+    screen.fill((255, 255, 255)) # 배경화면 (임시)
+    screen.blit(player, (player_x_pos, player_y_pos)) # 플레이어 그리기
     pygame.display.update() # 게임화면 다시 그리기
 
 # pygame 종료
