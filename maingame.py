@@ -3,21 +3,11 @@ import pygame
 
 # 캐릭터 클래스
 class Character(pygame.sprite.Sprite):
-    def __init__(self, image, position, name):
+    def __init__(self, image, position):
         super().__init__()
         self.image = image
         self.rect = image.get_rect(center=position)
-        self.name = name
         self.position = position
-        self.health = 1 # 임시
-        self.attack = 1 # 임시
-        self.speed = 1 # 임시
-
-    def show_spec(self): # 임시 : 스텟 정보 표시
-        print(f"이름 : {self.name}")
-        print(f"체력 : {self.health}")
-        print(f"공격력 : {self.attack}")
-        print(f"이동 속도 : {self.speed}")
 
     # 화면에 캐릭터를 그리는 함수
     def draw(self, screen):
@@ -25,10 +15,10 @@ class Character(pygame.sprite.Sprite):
 
 # 플레이어 클래스
 class Player(Character):
-    def __init__(self, image, position, name):
-        super().__init__(image, position, name)
+    def __init__(self, image, position):
+        super().__init__(image, position)
         self.health = 10
-        self.attack = 2
+        self.attack_stat = 2
         self.speed = 5
 
     def move(self, dx, dy, screen_width, screen_height):
@@ -54,14 +44,27 @@ class Player(Character):
     def show_rect(self):
         print(f"x : {self.rect.x}, y : {self.rect.y}")
 
+    def attack(self):
+        pass
+
 # 적 클래스
 class Enemy(Character):
-    def __init__(self, image, position, name):
-        super().__init__(image, position, name)
+    def __init__(self, image, position):
+        super().__init__(image, position)
         self.health = 6
         self.attack = 1
         self.speed = 1
 
+class Shot(pygame.sprite.Sprite):
+    def __init__(self, image, position):
+        super().__init__()
+        self.image = image
+        self.rect = image.get_rect(center=position)
+        self.position = position
+
+    def draw(self, screen):
+        screen.blit(self.image, self.position)
+    
 # 초기화
 pygame.init()
 
@@ -83,11 +86,15 @@ background = pygame.image.load(os.path.join(current_path, "images/background.png
 
 # 플레이어 캐릭터 불러오기
 player_image = pygame.image.load(os.path.join(current_path, "images/player.png")).convert_alpha() # 플레이어 캐릭터 이미지 불러오기
-player = Player(player_image, (screen_width / 2, screen_height / 2), "플레이어")
+player = Player(player_image, (screen_width / 2, screen_height / 2))
 
 # 적 캐릭터 불러오기
 enemy_image = pygame.image.load(os.path.join(current_path, "images/enemy.png")).convert_alpha() # 적 캐릭터 이미지 불러오기
-enemy = Enemy(enemy_image, (100, 100), "적")
+enemy = Enemy(enemy_image, (100, 100))
+
+# (임시) 공격 모션 불러오기
+shot_image = pygame.image.load(os.path.join(current_path, "images/attack.png")).convert_alpha() # 공격 모션 이미지 불러오기
+shot = Shot(shot_image, (200, 200))
 
 # 플레이어 이동 방향
 dx = 0
@@ -127,6 +134,7 @@ while running:
     screen.blit(background, (0, 0)) # 배경화면
     player.draw(screen) # 플레이어 그리기
     enemy.draw(screen) # 적 그리기
+    shot.draw(screen) # 공격 그리기
     pygame.display.update() # 게임화면 다시 그리기
 
 # pygame 종료
