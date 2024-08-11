@@ -15,13 +15,12 @@ class Character(pygame.sprite.Sprite):
 
 # 플레이어 클래스
 class Player(Character):
-    def __init__(self, image, position):
+    def __init__(self, image, position, images):
         super().__init__(image, position)
         self.health = 10
         self.attack_stat = 2
         self.speed = 3
-        self.cur_direction = None
-        self.directions = [0, 1, 2, 3]
+        self.images = images
 
     def move(self, dx, dy, screen_width, screen_height):
         self.rect.x += dx * self.speed
@@ -53,14 +52,14 @@ class Player(Character):
 
         if abs(dx) > abs(dy):
             if dx > 0:
-                print("동쪽")
+                self.image = self.images["east"]
             else:
-                print("서쪽")
+                self.image = pygame.transform.flip(self.images["east"], True, False)
         else:
             if dy > 0:
-                print("남쪽")
+                self.image = self.images["south"]
             else:
-                print("북쪽")
+                self.image = self.images["north"]
 
     def attack(self):
         pass
@@ -102,9 +101,15 @@ clock = pygame.time.Clock()
 current_path = os.path.dirname(__file__)
 background = pygame.image.load(os.path.join(current_path, "images/background.png")).convert_alpha()
 
+# 플레이어 캐릭터 이미지 불러오기
+player_images = {
+    "south" : pygame.image.load(os.path.join(current_path, "images/player_south.png")).convert_alpha(),
+    "north" : pygame.image.load(os.path.join(current_path, "images/player_north.png")).convert_alpha(),
+    "east" : pygame.image.load(os.path.join(current_path, "images/player_east.png")).convert_alpha()
+}
+
 # 플레이어 캐릭터 불러오기
-player_image = pygame.image.load(os.path.join(current_path, "images/player.png")).convert_alpha() # 플레이어 캐릭터 이미지 불러오기
-player = Player(player_image, (screen_width / 2, screen_height / 2))
+player = Player(player_images["south"], (screen_width / 2, screen_height / 2), player_images)
 
 # 적 캐릭터 불러오기
 enemy_image = pygame.image.load(os.path.join(current_path, "images/enemy.png")).convert_alpha() # 적 캐릭터 이미지 불러오기
