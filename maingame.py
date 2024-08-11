@@ -19,7 +19,9 @@ class Player(Character):
         super().__init__(image, position)
         self.health = 10
         self.attack_stat = 2
-        self.speed = 5
+        self.speed = 3
+        self.cur_direction = None
+        self.directions = [0, 1, 2, 3]
 
     def move(self, dx, dy, screen_width, screen_height):
         self.rect.x += dx * self.speed
@@ -42,7 +44,23 @@ class Player(Character):
         print(self.position)
 
     def show_rect(self):
-        print(f"x : {self.rect.x}, y : {self.rect.y}")
+        print(f"x : {self.rect.centerx}, y : {self.rect.centery}")
+
+    def update_direction(self, mouse_pos):
+        mouse_x, mouse_y = mouse_pos
+        dx = mouse_x - self.rect.centerx
+        dy = mouse_y - self.rect.centery
+
+        if abs(dx) > abs(dy):
+            if dx > 0:
+                print("동쪽")
+            else:
+                print("서쪽")
+        else:
+            if dy > 0:
+                print("남쪽")
+            else:
+                print("북쪽")
 
     def attack(self):
         pass
@@ -99,6 +117,7 @@ shot = Shot(shot_image, (200, 200))
 # 플레이어 이동 방향
 dx = 0
 dy = 0
+mouse_pos = (0, 0)
 
 # 이벤트 루프
 running = True # 게임이 진행중인가?
@@ -128,9 +147,13 @@ while running:
                 dy = 0
             if event.key == pygame.K_DOWN and dy == 1:
                 dy = 0
+
+        if event.type == pygame.MOUSEMOTION:
+            mouse_pos = pygame.mouse.get_pos()
     
-    player.move(dx, dy, screen_width, screen_height)
-  
+    player.move(dx, dy, screen_width, screen_height) # 플레이어 이동
+    player.update_direction(mouse_pos) # 플레이어가 바라보는 방향
+
     screen.blit(background, (0, 0)) # 배경화면
     player.draw(screen) # 플레이어 그리기
     enemy.draw(screen) # 적 그리기
