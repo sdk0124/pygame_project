@@ -27,6 +27,7 @@ class Player(Character):
         self.invincible = False # 무적 상태 여부
         self.invincible_start_time = 0 # 무적 상태 시작 시각
         self.invincible_duration = 2 # 무적 상태 지속 시간 (2초)
+        self.blink_interval = 0.1 # 깜박임 간격 (0.1초)
 
     def move(self, dx, dy, screen_width, screen_height):
         self.rect.x += dx * self.speed
@@ -64,6 +65,15 @@ class Player(Character):
             else:
                 self.image = self.images["north"]
                 self.direction = "north"
+
+    def draw(self, screen):
+        if not self.invincible: # 무적 상태가 아닐 경우
+            super().draw(screen) # 그냥 플레이어를 그린다.
+        else: # 무적 상태일 경우 
+            current_time = time.time()
+            elapsed_time = current_time - self.invincible_start_time
+            if int(elapsed_time / self.blink_interval) % 2 == 0: # 이 조건에 만족할 때만 그린다. (깜박임 효과)
+                super().draw(screen)
 
     def attack(self):
         shot = Shot(shot_image, self.rect.center, self.direction)
