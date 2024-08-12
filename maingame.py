@@ -24,6 +24,7 @@ class Player(Character):
         self.images = images
         self.direction = "south" # 플레이어가 바라보는 방향 (이 방향으로 공격이 나갈 것임)
         self.shots = pygame.sprite.Group() # 플레이어가 공격한 공격 클래스들의 그룹
+        self.isdamaged = False # 데미지를 입었는가?
 
     def move(self, dx, dy, screen_width, screen_height):
         self.rect.x += dx * self.speed
@@ -72,12 +73,16 @@ class Player(Character):
     def shot_draw(self, screen):
         self.shots.draw(screen)
 
+    def take_damaged(self, damage):
+        self.health -= damage
+        print(f"{damage}만큼의 공격을 입음. 현재체력 : {self.health}")
+        
 # 적 클래스
 class Enemy(Character):
     def __init__(self, image, position):
         super().__init__(image, position)
         self.health = 6
-        self.attack = 1
+        self.attack_stat = 1
         self.speed = 1
 
 # 공격 클래스
@@ -116,6 +121,11 @@ def check_collision(player, enemies):
         collided_enemies = pygame.sprite.spritecollide(shot, enemies, True)
         if collided_enemies:
             shot.kill() # 충돌한 shot도 제거
+
+    # 플레이어와 적과의 충돌 확인
+    collided_enemy = pygame.sprite.spritecollideany(player, enemies)
+    if collided_enemy:
+        player.take_damaged(collided_enemy.attack_stat) # 플레이어가 데미지를 입음
 
 # 초기화
 pygame.init()
