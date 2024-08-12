@@ -19,8 +19,11 @@ class Player(Character):
         super().__init__(image, position)
         self.health = 10
         self.attack_stat = 2
+        self.attack_speed = 1 # 공격속도
         self.speed = 3
         self.images = images
+        self.direction = "south" # 플레이어가 바라보는 방향 (이 방향으로 공격이 나갈 것임)
+        self.shots = pygame.sprite.Group() # 플레이어가 공격한 공격 클래스들의 그룹
 
     def move(self, dx, dy, screen_width, screen_height):
         self.rect.x += dx * self.speed
@@ -39,12 +42,6 @@ class Player(Character):
         # 위치 업데이트
         self.position = (self.rect.x, self.rect.y)
 
-    def show_position(self):
-        print(self.position)
-
-    def show_rect(self):
-        print(f"x : {self.rect.centerx}, y : {self.rect.centery}")
-
     def update_direction(self, mouse_pos):
         mouse_x, mouse_y = mouse_pos
         dx = mouse_x - self.rect.centerx
@@ -53,16 +50,28 @@ class Player(Character):
         if abs(dx) > abs(dy):
             if dx > 0:
                 self.image = self.images["east"]
+                self.direction = "east"
             else:
                 self.image = pygame.transform.flip(self.images["east"], True, False)
+                self.direction = "west"
         else:
             if dy > 0:
                 self.image = self.images["south"]
+                self.direction = "south"
             else:
                 self.image = self.images["north"]
+                self.direction = "north"
 
     def attack(self):
-        pass
+        shot = Shot(shot_image, self.rect.center, self.direction)
+        self.shots.add(shot)
+
+    def shot_move(self):
+        self.shots.update()
+
+    def shot_draw(self, screen):
+        self.shots.draw(screen)
+
 
 # 적 클래스
 class Enemy(Character):
@@ -72,15 +81,34 @@ class Enemy(Character):
         self.attack = 1
         self.speed = 1
 
+# 공격 클래스
 class Shot(pygame.sprite.Sprite):
-    def __init__(self, image, position):
+    def __init__(self, image, position, direction):
         super().__init__()
         self.image = image
         self.rect = image.get_rect(center=position)
         self.position = position
+        self.speed = 5
+        self.direction = direction # 이동 방향 (플레이어가 바라보는 방향에 따라 결정된다.)
+
+    def update(self):
+        # 이동
+        if self.direction == "north":
+            self.rect.y -= self.speed
+        elif self.direction == "south":
+            self.rect.y += self.speed
+        elif self.direction == "east":
+            self.rect.x += self.speed
+        elif self.direction == "west":
+            self.rect.x -= self.speed
+
+        # 화면 밖을 벗어나면 제거
+        if (self.rect.right < 0 or self.rect.left > screen_width or
+            self.rect.bottom < 0 or self.rect.top > screen_height):
+            self.kill()
 
     def draw(self, screen):
-        screen.blit(self.image, self.position)
+        screen.blit(self.image, self.rect.topleft)
     
 # 초기화
 pygame.init()
@@ -117,7 +145,8 @@ enemy = Enemy(enemy_image, (100, 100))
 
 # (임시) 공격 모션 불러오기
 shot_image = pygame.image.load(os.path.join(current_path, "images/attack.png")).convert_alpha() # 공격 모션 이미지 불러오기
-shot = Shot(shot_image, (200, 200))
+shots = []
+# shot = Shot(shot_image, (200, 200))
 
 # 플레이어 이동 방향
 dx = 0
@@ -155,14 +184,19 @@ while running:
 
         if event.type == pygame.MOUSEMOTION:
             mouse_pos = pygame.mouse.get_pos()
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            player.attack() # 플레이어 공격
     
     player.move(dx, dy, screen_width, screen_height) # 플레이어 이동
-    player.update_direction(mouse_pos) # 플레이어가 바라보는 방향
+    player.update_direction(mouse_pos) # 플레이어가 바라보는 방향 업데이트
+    player.shot_move() # 플레이어 공격 이동
 
     screen.blit(background, (0, 0)) # 배경화면
+    player.shot_draw(screen) # 플레이어 공격 그리기
     player.draw(screen) # 플레이어 그리기
     enemy.draw(screen) # 적 그리기
-    shot.draw(screen) # 공격 그리기
+    
     pygame.display.update() # 게임화면 다시 그리기
 
 # pygame 종료
