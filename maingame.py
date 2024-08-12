@@ -135,6 +135,18 @@ class Shot(pygame.sprite.Sprite):
     def draw(self, screen):
         screen.blit(self.image, self.rect.topleft)
 
+# 아이템 클래스
+class Item(pygame.sprite.Sprite):
+    def __init__(self, image, position):
+        super().__init__()
+        self.image = image
+        self.rect = image.get_rect(center=position)
+        self.position = position
+
+    def draw(self, screen):
+        screen.blit(self.image, self.position)
+
+
 def check_collision(player, enemies):
     # 적들과 충돌한 shot 확인
     for shot in player.shots:
@@ -185,6 +197,20 @@ enemy2 = Enemy(enemy_image, (300, 150))
 # (임시) 적 캐릭터 그룹 생성
 enemies = pygame.sprite.Group()
 enemies.add(enemy1, enemy2)
+
+# (임시) 아이템 불러오기
+item_images = {
+    "sword" : pygame.image.load(os.path.join(current_path, "images/item_bfsword.png")).convert_alpha(),
+    "bow" : pygame.image.load(os.path.join(current_path, "images/item_bow.png")).convert_alpha(),
+    "belt" : pygame.image.load(os.path.join(current_path, "images/item_belt.png")).convert_alpha()
+}
+item_sword = Item(item_images["sword"], (300, 450))
+item_belt = Item(item_images["belt"], (300, 500))
+item_bow = Item(item_images["bow"], (300, 550))
+
+# (임시) 아이템 그룹 생성
+items = pygame.sprite.Group()
+items.add(item_sword, item_belt, item_bow)
 
 # 공격 이미지 불러오기
 shot_image = pygame.image.load(os.path.join(current_path, "images/attack.png")).convert_alpha() # 공격 모션 이미지 불러오기
@@ -239,7 +265,8 @@ while running:
     player.shot_draw(screen) # 플레이어 공격 그리기
     player.draw(screen) # 플레이어 그리기
     enemies.draw(screen) # 적 그리기
-    
+    items.draw(screen) # 아이템 그리기
+
     pygame.display.update() # 게임화면 다시 그리기
 
 # pygame 종료
