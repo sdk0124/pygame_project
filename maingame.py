@@ -72,7 +72,6 @@ class Player(Character):
     def shot_draw(self, screen):
         self.shots.draw(screen)
 
-
 # 적 클래스
 class Enemy(Character):
     def __init__(self, image, position):
@@ -139,14 +138,17 @@ player_images = {
 # 플레이어 캐릭터 불러오기
 player = Player(player_images["south"], (screen_width / 2, screen_height / 2), player_images)
 
-# 적 캐릭터 불러오기
+# (임시) 적 캐릭터 불러오기
 enemy_image = pygame.image.load(os.path.join(current_path, "images/enemy.png")).convert_alpha() # 적 캐릭터 이미지 불러오기
-enemy = Enemy(enemy_image, (100, 100))
+enemy1 = Enemy(enemy_image, (150, 150))
+enemy2 = Enemy(enemy_image, (300, 150))
 
-# (임시) 공격 모션 불러오기
+# (임시) 적 캐릭터 그룹 생성
+enemies = pygame.sprite.Group()
+enemies.add(enemy1, enemy2)
+
+# 공격 이미지 불러오기
 shot_image = pygame.image.load(os.path.join(current_path, "images/attack.png")).convert_alpha() # 공격 모션 이미지 불러오기
-shots = []
-# shot = Shot(shot_image, (200, 200))
 
 # 플레이어 이동 방향
 dx = 0
@@ -195,7 +197,7 @@ while running:
     screen.blit(background, (0, 0)) # 배경화면
     player.shot_draw(screen) # 플레이어 공격 그리기
     player.draw(screen) # 플레이어 그리기
-    enemy.draw(screen) # 적 그리기
+    enemies.draw(screen) # 적 그리기
     
     pygame.display.update() # 게임화면 다시 그리기
 
