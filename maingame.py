@@ -1,4 +1,4 @@
-import os
+import os, time
 import pygame
 
 # 캐릭터 클래스
@@ -24,7 +24,9 @@ class Player(Character):
         self.images = images
         self.direction = "south" # 플레이어가 바라보는 방향 (이 방향으로 공격이 나갈 것임)
         self.shots = pygame.sprite.Group() # 플레이어가 공격한 공격 클래스들의 그룹
-        self.isdamaged = False # 데미지를 입었는가?
+        self.invincible = False # 무적 상태 여부
+        self.invincible_start_time = 0 # 무적 상태 시작 시각
+        self.invincible_duration = 2 # 무적 상태 지속 시간 (2초)
 
     def move(self, dx, dy, screen_width, screen_height):
         self.rect.x += dx * self.speed
@@ -74,9 +76,18 @@ class Player(Character):
         self.shots.draw(screen)
 
     def take_damaged(self, damage):
-        self.health -= damage
-        print(f"{damage}만큼의 공격을 입음. 현재체력 : {self.health}")
-        
+        if not self.invincible: # 무적 상태가 아니면 공격을 받는다.
+            self.health -= damage
+            print(f"{damage}만큼의 공격을 입음. 현재체력 : {self.health}")
+            self.invincible = True # 무적 상태로 전환
+            self.invincible_start_time = time.time()
+
+    def check_isvincible(self, duration_time):
+        if self.invincible:
+            current_time = time.time()
+            if current_time - self.invincible_start_time > duration_time:
+                self.invincible = False
+
 # 적 클래스
 class Enemy(Character):
     def __init__(self, image, position):
@@ -212,6 +223,7 @@ while running:
     player.update_direction(mouse_pos) # 플레이어가 바라보는 방향 업데이트
     player.shot_move() # 플레이어 공격 이동
     check_collision(player, enemies) # 충돌 체크
+    player.check_isvincible(player.invincible_duration) # 무적 상태 체크
 
     screen.blit(background, (0, 0)) # 배경화면
     player.shot_draw(screen) # 플레이어 공격 그리기
