@@ -108,7 +108,15 @@ class Shot(pygame.sprite.Sprite):
 
     def draw(self, screen):
         screen.blit(self.image, self.rect.topleft)
-    
+
+def check_collision(player, enemies):
+    # 적들과 충돌한 shot 확인
+    for shot in player.shots:
+        # 충돌한 적은 enemies 그룹에서 제거
+        collided_enemies = pygame.sprite.spritecollide(shot, enemies, True)
+        if collided_enemies:
+            shot.kill() # 충돌한 shot도 제거
+
 # 초기화
 pygame.init()
 
@@ -193,6 +201,7 @@ while running:
     player.move(dx, dy, screen_width, screen_height) # 플레이어 이동
     player.update_direction(mouse_pos) # 플레이어가 바라보는 방향 업데이트
     player.shot_move() # 플레이어 공격 이동
+    check_collision(player, enemies) # 충돌 체크
 
     screen.blit(background, (0, 0)) # 배경화면
     player.shot_draw(screen) # 플레이어 공격 그리기
