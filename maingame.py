@@ -19,7 +19,7 @@ class Player(Character):
         super().__init__(image, position)
         self.health = 10
         self.attack_stat = 2
-        self.attack_speed = 1 # 공격속도
+        self.attack_speed = 2 # 공격속도 (기본 : 초당 2번 공격)
         self.speed = 3
         self.images = images
         self.direction = "south" # 플레이어가 바라보는 방향 (이 방향으로 공격이 나갈 것임)
@@ -28,6 +28,7 @@ class Player(Character):
         self.invincible_start_time = 0 # 무적 상태 시작 시각
         self.invincible_duration = 2 # 무적 상태 지속 시간 (2초)
         self.blink_interval = 0.1 # 깜박임 간격 (0.1초)
+        self.last_attack_time = 0 # 마지막 공격 시각 기록
 
     def move(self, dx, dy, screen_width, screen_height):
         self.rect.x += dx * self.speed
@@ -75,9 +76,17 @@ class Player(Character):
             if int(elapsed_time / self.blink_interval) % 2 == 0: # 이 조건에 만족할 때만 그린다. (깜박임 효과)
                 super().draw(screen)
 
+    def check_can_attack(self): # 공격 가능 확인 함수
+        current_time = time.time()
+        if (current_time - self.last_attack_time) >= (1 / self.attack_speed):
+            self.last_attack_time = current_time
+            return True
+        return False
+
     def attack(self):
-        shot = Shot(shot_image, self.rect.center, self.direction)
-        self.shots.add(shot)
+        if self.check_can_attack():
+            shot = Shot(shot_image, self.rect.center, self.direction)
+            self.shots.add(shot)
 
     def shot_move(self):
         self.shots.update()
