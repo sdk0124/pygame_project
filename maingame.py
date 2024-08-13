@@ -173,6 +173,15 @@ class Item(pygame.sprite.Sprite):
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
+# 드롭 아이템 클래스
+class DropThing(pygame.sprite.Sprite):
+    def __init__(self, image, position):
+        super().__init__()
+        self.image = image
+        self.rect = image.get_rect(center=position)
+        
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
 
 def check_collision(player, enemies):
     # 적들과 충돌한 shot 확인
@@ -222,10 +231,13 @@ player = Player(player_images["south"], (screen_width / 2, screen_height / 2), p
 enemy_image = pygame.image.load(os.path.join(current_path, "images/enemy.png")).convert_alpha() # 적 캐릭터 이미지 불러오기
 enemy1 = Enemy(enemy_image, (150, 150))
 enemy2 = Enemy(enemy_image, (300, 150))
+enemy3 = Enemy(enemy_image, (150, 200))
+enemy4 = Enemy(enemy_image, (150, 250))
+enemy5 = Enemy(enemy_image, (300, 200))
 
 # (임시) 적 캐릭터 그룹 생성
 enemies = pygame.sprite.Group()
-enemies.add(enemy1, enemy2)
+enemies.add(enemy1, enemy2, enemy3, enemy4, enemy5)
 
 # (임시) 아이템 불러오기
 item_images = {
@@ -240,6 +252,20 @@ item_bow = Item(item_images["bow"], (300, 550))
 # (임시) 아이템 그룹 생성
 items = pygame.sprite.Group()
 items.add(item_sword, item_belt, item_bow)
+
+# 드롭템 불러오기
+dropthings_images = {
+    "key" : pygame.image.load(os.path.join(current_path, "images/key.png")).convert_alpha(), # 열쇠 이미지
+    "bomb" : pygame.image.load(os.path.join(current_path, "images/bomb.png")).convert_alpha(), # 폭탄 이미지
+    "coin" : pygame.image.load(os.path.join(current_path, "images/coin.png")).convert_alpha(), # 동전 이미지
+}
+key = DropThing(dropthings_images["key"], (900, 100))
+bomb = DropThing(dropthings_images["bomb"], (900, 150))
+coin = DropThing(dropthings_images["coin"], (900, 200))
+
+# (임시) 드롭템 그룹 생성
+dropthings = pygame.sprite.Group()
+dropthings.add(key, bomb, coin)
 
 # 공격 이미지 불러오기
 shot_image = pygame.image.load(os.path.join(current_path, "images/attack.png")).convert_alpha() # 공격 모션 이미지 불러오기
@@ -297,6 +323,7 @@ while running:
     player.draw(screen) # 플레이어 그리기
     enemies.draw(screen) # 적 그리기
     items.draw(screen) # 아이템 그리기
+    dropthings.draw(screen) # 드롭템 그리기
 
     pygame.display.update() # 게임화면 다시 그리기
 
