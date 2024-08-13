@@ -1,4 +1,4 @@
-import os, time
+import os, time, math
 import pygame
 
 # 캐릭터 클래스
@@ -141,10 +141,23 @@ class Item(pygame.sprite.Sprite):
         super().__init__()
         self.image = image
         self.rect = image.get_rect(center=position)
-        self.position = position
+        self.original_position  = pygame.Vector2(position) # 원래 위치
+        self.position = pygame.Vector2(position) # 현재 위치
+
+        self.move_amplitude = 10 # 움직임의 크기
+        self.move_speed = 0.3 # 속도
+        self.move_start_time = pygame.time.get_ticks()
+
+    def update(self):
+        # 위 아래로 천천히 움직이게 만드는 로직 
+        elapsed_time = (pygame.time.get_ticks() - self.move_start_time)
+        elapsed_time = elapsed_time * 0.01 # 시간의 흐름을 느리게 해서 천천히 움직이도록 한다.
+        offset = self.move_amplitude * math.sin(self.move_speed * elapsed_time)
+        self.position.y = self.original_position.y + offset
+        self.rect.center = self.position
 
     def draw(self, screen):
-        screen.blit(self.image, self.position)
+        screen.blit(self.image, self.rect)
 
 
 def check_collision(player, enemies):
@@ -260,6 +273,8 @@ while running:
     player.shot_move() # 플레이어 공격 이동
     check_collision(player, enemies) # 충돌 체크
     player.check_isvincible(player.invincible_duration) # 무적 상태 체크
+
+    items.update() # 아이템 움직임 업데이트
 
     screen.blit(background, (0, 0)) # 배경화면
     player.shot_draw(screen) # 플레이어 공격 그리기
