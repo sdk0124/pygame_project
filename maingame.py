@@ -17,8 +17,8 @@ class Character(pygame.sprite.Sprite):
 class Player(Character):
     def __init__(self, image, position, images):
         super().__init__(image, position)
-        self.health = 10
-        self.attack_stat = 2
+        self.health = 10 # 체력
+        self.attack_stat = 2 # 공격력
         self.attack_speed = 2 # 공격속도 (기본 : 초당 2번 공격)
         self.speed = 3
         self.images = images
@@ -115,6 +115,11 @@ class Enemy(Character):
         self.attack_stat = 1
         self.speed = 1
 
+    def take_damaged(self, damage):
+        self.health -= damage
+        if self.health <= 0:
+            self.kill()
+
 # 공격 클래스
 class Shot(pygame.sprite.Sprite):
     def __init__(self, image, position, direction):
@@ -172,10 +177,12 @@ class Item(pygame.sprite.Sprite):
 def check_collision(player, enemies):
     # 적들과 충돌한 shot 확인
     for shot in player.shots:
-        # 충돌한 적은 enemies 그룹에서 제거
-        collided_enemies = pygame.sprite.spritecollide(shot, enemies, True)
+        # 충돌한 적은 확인
+        collided_enemies = pygame.sprite.spritecollide(shot, enemies, False)
         if collided_enemies:
             shot.kill() # 충돌한 shot도 제거
+            for enemy in collided_enemies: 
+                enemy.take_damaged(player.attack_stat) # shot과 충돌한 적이 데미지를 입음
 
     # 플레이어와 적과의 충돌 확인
     collided_enemy = pygame.sprite.spritecollideany(player, enemies)
