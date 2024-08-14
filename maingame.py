@@ -1,4 +1,4 @@
-import os, time, math
+import os, time, math, random
 import pygame
 
 # 캐릭터 클래스
@@ -109,16 +109,37 @@ class Player(Character):
 
 # 적 클래스
 class Enemy(Character):
-    def __init__(self, image, position):
+    def __init__(self, image, position, drop_things):
         super().__init__(image, position)
         self.health = 6
         self.attack_stat = 1
         self.speed = 1
+        self.drop_things = drop_things
 
     def take_damaged(self, damage):
         self.health -= damage
         if self.health <= 0:
+            self.select_drop_things()
             self.kill()
+
+    def select_drop_things(self):
+        drop_chance = random.random()
+
+        print(drop_chance)
+
+        if drop_chance <= 0.4:
+            return
+        elif 0.4 < drop_chance <= 0.6:
+            drop_things_type = "key"
+        elif 0.6 < drop_chance <= 0.8:
+            drop_things_type = "bomb"
+        elif 0.8 < drop_chance <= 1:
+            drop_things_type = "coin"
+
+        drop_things_image = self.drop_things[drop_things_type]
+        dropthing = DropThing(drop_things_image, self.rect.center)
+        dropthings.add(dropthing)
+
 
 # 공격 클래스
 class Shot(pygame.sprite.Sprite):
@@ -217,6 +238,22 @@ clock = pygame.time.Clock()
 current_path = os.path.dirname(__file__)
 background = pygame.image.load(os.path.join(current_path, "images/background.png")).convert_alpha()
 
+# 드롭템 불러오기
+dropthings_images = {
+    "key" : pygame.image.load(os.path.join(current_path, "images/key.png")).convert_alpha(), # 열쇠 이미지
+    "bomb" : pygame.image.load(os.path.join(current_path, "images/bomb.png")).convert_alpha(), # 폭탄 이미지
+    "coin" : pygame.image.load(os.path.join(current_path, "images/coin.png")).convert_alpha(), # 동전 이미지
+}
+
+# (임시) 드롭템 객체 생성
+key = DropThing(dropthings_images["key"], (900, 100))
+bomb = DropThing(dropthings_images["bomb"], (900, 150))
+coin = DropThing(dropthings_images["coin"], (900, 200))
+
+# (임시) 드롭템 그룹 생성
+dropthings = pygame.sprite.Group()
+dropthings.add(key, bomb, coin)
+
 # 플레이어 캐릭터 이미지 불러오기
 player_images = {
     "south" : pygame.image.load(os.path.join(current_path, "images/player_south.png")).convert_alpha(),
@@ -229,11 +266,11 @@ player = Player(player_images["south"], (screen_width / 2, screen_height / 2), p
 
 # (임시) 적 캐릭터 불러오기
 enemy_image = pygame.image.load(os.path.join(current_path, "images/enemy.png")).convert_alpha() # 적 캐릭터 이미지 불러오기
-enemy1 = Enemy(enemy_image, (150, 150))
-enemy2 = Enemy(enemy_image, (300, 150))
-enemy3 = Enemy(enemy_image, (150, 200))
-enemy4 = Enemy(enemy_image, (150, 250))
-enemy5 = Enemy(enemy_image, (300, 200))
+enemy1 = Enemy(enemy_image, (150, 150), dropthings_images)
+enemy2 = Enemy(enemy_image, (300, 150), dropthings_images)
+enemy3 = Enemy(enemy_image, (150, 200), dropthings_images)
+enemy4 = Enemy(enemy_image, (150, 250), dropthings_images)
+enemy5 = Enemy(enemy_image, (300, 200), dropthings_images)
 
 # (임시) 적 캐릭터 그룹 생성
 enemies = pygame.sprite.Group()
@@ -252,20 +289,6 @@ item_bow = Item(item_images["bow"], (300, 550))
 # (임시) 아이템 그룹 생성
 items = pygame.sprite.Group()
 items.add(item_sword, item_belt, item_bow)
-
-# 드롭템 불러오기
-dropthings_images = {
-    "key" : pygame.image.load(os.path.join(current_path, "images/key.png")).convert_alpha(), # 열쇠 이미지
-    "bomb" : pygame.image.load(os.path.join(current_path, "images/bomb.png")).convert_alpha(), # 폭탄 이미지
-    "coin" : pygame.image.load(os.path.join(current_path, "images/coin.png")).convert_alpha(), # 동전 이미지
-}
-key = DropThing(dropthings_images["key"], (900, 100))
-bomb = DropThing(dropthings_images["bomb"], (900, 150))
-coin = DropThing(dropthings_images["coin"], (900, 200))
-
-# (임시) 드롭템 그룹 생성
-dropthings = pygame.sprite.Group()
-dropthings.add(key, bomb, coin)
 
 # 공격 이미지 불러오기
 shot_image = pygame.image.load(os.path.join(current_path, "images/attack.png")).convert_alpha() # 공격 모션 이미지 불러오기
