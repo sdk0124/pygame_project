@@ -30,6 +30,10 @@ class Player(Character):
         self.blink_interval = 0.1 # 깜박임 간격 (0.1초)
         self.last_attack_time = 0 # 마지막 공격 시각 기록
 
+        self.key_count = 0 # 열쇠 개수
+        self.coin_count = 0 # 동전 개수
+        self.bomb_count = 0 # 폭탄 개수
+
     def move(self, dx, dy, screen_width, screen_height):
         self.rect.x += dx * self.speed
         self.rect.y += dy * self.speed
@@ -137,7 +141,7 @@ class Enemy(Character):
             drop_things_type = "coin"
 
         drop_things_image = self.drop_things[drop_things_type]
-        dropthing = DropThing(drop_things_image, self.rect.center)
+        dropthing = DropThing(drop_things_image, self.rect.center, drop_things_type)
         dropthings.add(dropthing)
 
 
@@ -196,15 +200,16 @@ class Item(pygame.sprite.Sprite):
 
 # 드롭 아이템 클래스
 class DropThing(pygame.sprite.Sprite):
-    def __init__(self, image, position):
+    def __init__(self, image, position, type):
         super().__init__()
         self.image = image
         self.rect = image.get_rect(center=position)
+        self.type = type
         
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
-def check_collision(player, enemies):
+def check_collision(player, enemies, dropthings):
     # 적들과 충돌한 shot 확인
     for shot in player.shots:
         # 충돌한 적은 확인
@@ -218,6 +223,21 @@ def check_collision(player, enemies):
     collided_enemy = pygame.sprite.spritecollideany(player, enemies)
     if collided_enemy:
         player.take_damaged(collided_enemy.attack_stat) # 플레이어가 데미지를 입음
+
+    # 플레이어가 드롭템을 먹는 로직
+    collided_dropthings = pygame.sprite.spritecollide(player, dropthings, True)
+    if collided_dropthings:
+        for dropthing in collided_dropthings:
+            if dropthing.type == "key":
+                player.key_count += 1
+            if dropthing.type == "bomb":
+                player.bomb_count += 1
+            if dropthing.type == "coin":
+                player.coin_count += 1
+
+        # print(f"동전 개수 : {player.coin_count}")
+        # print(f"열쇠 개수 : {player.key_count}")
+        # print(f"폭탄 개수 : {player.bomb_count}")
 
 # 초기화
 pygame.init()
@@ -246,9 +266,9 @@ dropthings_images = {
 }
 
 # (임시) 드롭템 객체 생성
-key = DropThing(dropthings_images["key"], (900, 100))
-bomb = DropThing(dropthings_images["bomb"], (900, 150))
-coin = DropThing(dropthings_images["coin"], (900, 200))
+key = DropThing(dropthings_images["key"], (900, 100), "key")
+bomb = DropThing(dropthings_images["bomb"], (900, 150), "bomb")
+coin = DropThing(dropthings_images["coin"], (900, 200), "coin")
 
 # (임시) 드롭템 그룹 생성
 dropthings = pygame.sprite.Group()
@@ -336,7 +356,7 @@ while running:
     player.move(dx, dy, screen_width, screen_height) # 플레이어 이동
     player.update_direction(mouse_pos) # 플레이어가 바라보는 방향 업데이트
     player.shot_move() # 플레이어 공격 이동
-    check_collision(player, enemies) # 충돌 체크
+    check_collision(player, enemies, dropthings) # 충돌 체크
     player.check_isvincible(player.invincible_duration) # 무적 상태 체크
 
     items.update() # 아이템 움직임 업데이트
