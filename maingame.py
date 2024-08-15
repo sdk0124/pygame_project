@@ -115,18 +115,21 @@ class Player(Character):
 class Enemy(Character):
     def __init__(self, image, position, drop_things):
         super().__init__(image, position)
-        self.health = 6
-        self.attack_stat = 1
-        self.speed = 1
+        self.health = None # (임시)
+        self.attack_stat = None # (임시)
+        self.speed = None # (임시)
         self.drop_things = drop_things
 
-    def take_damaged(self, damage):
+    def move(self): # 적의 움직임 (적 타입에 따라 달라짐)
+        pass
+
+    def take_damaged(self, damage): # 적이 데미지를 입음
         self.health -= damage
         if self.health <= 0:
             self.select_drop_things()
             self.kill()
 
-    def select_drop_things(self):
+    def select_drop_things(self): # 적이 죽을 시 드롭템을 결정
         drop_chance = random.random()
 
         print(drop_chance)
@@ -144,6 +147,21 @@ class Enemy(Character):
         dropthing = DropThing(drop_things_image, self.rect.center, drop_things_type)
         dropthings.add(dropthing)
 
+# 적 - 근접 미니언
+class WarriorMinion(Enemy):
+    def __init__(self, image, position, drop_things):
+        super().__init__(image, position, drop_things)
+        self.health = 6
+        self.attack_stat = 1
+        self.speed = 1
+
+# 적 - 원거리 미니언
+class MagicianMinion(Enemy):
+    def __init__(self, image, position, drop_things):
+        super().__init__(image, position, drop_things)
+        self.health = 4
+        self.attack_stat = 1
+        self.speed = 2
 
 # 공격 클래스
 class Shot(pygame.sprite.Sprite):
@@ -284,17 +302,19 @@ player_images = {
 # 플레이어 캐릭터 불러오기
 player = Player(player_images["south"], (screen_width / 2, screen_height / 2), player_images)
 
-# (임시) 적 캐릭터 불러오기
-enemy_image = pygame.image.load(os.path.join(current_path, "images/enemy.png")).convert_alpha() # 적 캐릭터 이미지 불러오기
-enemy1 = Enemy(enemy_image, (150, 150), dropthings_images)
-enemy2 = Enemy(enemy_image, (300, 150), dropthings_images)
-enemy3 = Enemy(enemy_image, (150, 200), dropthings_images)
-enemy4 = Enemy(enemy_image, (150, 250), dropthings_images)
-enemy5 = Enemy(enemy_image, (300, 200), dropthings_images)
+# 적 캐릭터 이미지 불러오기
+enemy_images = {
+    "minion_warrior" : pygame.image.load(os.path.join(current_path, "images/enemy_warrior.png")).convert_alpha(),
+    "minion_magician" : pygame.image.load(os.path.join(current_path, "images/enemy_magician.png")).convert_alpha(),
+}
+enemy_warrior1 = WarriorMinion(enemy_images["minion_warrior"], (150, 150), dropthings_images)
+enemy_warrior2 = WarriorMinion(enemy_images["minion_warrior"], (150, 200), dropthings_images)
+enemy_magician1 = MagicianMinion(enemy_images["minion_magician"], (300, 150), dropthings_images)
+enemy_magician2 = MagicianMinion(enemy_images["minion_magician"], (300, 200), dropthings_images)
 
 # (임시) 적 캐릭터 그룹 생성
 enemies = pygame.sprite.Group()
-enemies.add(enemy1, enemy2, enemy3, enemy4, enemy5)
+enemies.add(enemy_warrior1, enemy_warrior2, enemy_magician1, enemy_magician2)
 
 # (임시) 아이템 불러오기
 item_images = {
