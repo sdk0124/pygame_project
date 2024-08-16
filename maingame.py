@@ -155,13 +155,49 @@ class WarriorMinion(Enemy):
         self.attack_stat = 1
         self.speed = 1
 
+    def update(self):
+        pass
+
 # 적 - 원거리 미니언
 class MagicianMinion(Enemy):
     def __init__(self, image, position, drop_things):
         super().__init__(image, position, drop_things)
+        self.image = image
+        self.original_image = image # 원래 이미지는 동쪽을 바라보고 있다.
         self.health = 4
         self.attack_stat = 1
         self.speed = 2
+        self.direction = "east"
+        self.dx = 1
+        self.shots = pygame.sprite.Group() # 원거리 미니언의 공격들의 그룹
+
+    def update(self):
+        self.update_direction()
+        self.move()
+
+    def update_direction(self):
+        if self.direction == "east":
+            self.image = self.original_image
+        elif self.direction == "west":
+            self.image = pygame.transform.flip(self.original_image, True, False)
+
+    def move(self): # 원거리 미니언 움직임 : 수평 이동(동, 서)
+        if self.direction == "east":
+            self.rect.x += self.speed * self.dx
+        elif self.direction == "west":
+            self.rect.x -= self.speed * self.dx
+
+        if self.rect.left < 0:
+            self.direction = "east"
+            print("동쪽으로 바뀜")
+        if self.rect.right > screen_width:
+            self.direction = "west"
+            print("서쪽으로 바뀜")
+
+        self.position = (self.rect.x, self.rect.y)
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
 
 # 공격 클래스
 class Shot(pygame.sprite.Sprite):
@@ -415,6 +451,7 @@ while running:
     player.move(dx, dy, screen_width, screen_height) # 플레이어 이동
     player.update_direction(mouse_pos) # 플레이어가 바라보는 방향 업데이트
     player.shot_move() # 플레이어 공격 이동
+    enemies.update() # 적 이동 업데이트
     check_collision(player, enemies, dropthings) # 충돌 체크
     player.check_isvincible(player.invincible_duration) # 무적 상태 체크
 
