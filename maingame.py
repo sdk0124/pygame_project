@@ -227,6 +227,41 @@ class DropThing(pygame.sprite.Sprite):
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
+# 메인 GUI 클래스
+class GUI:
+    def __init__(self, player, font, heart_image, screen):
+        self.player = player
+        self.font = font
+        self.heart_image = heart_image
+        self.screen = screen
+
+    def draw_hearts(self):
+        for i in range(self.player.health):
+            self.screen.blit(self.heart_image, ((10 + i * (self.heart_image.get_width()) + 5), 10))
+
+    def draw_inventory(self):
+        key_text = self.font.render(f"Keys : {self.player.key_count}", True, (255, 255, 255))
+        bomb_text = self.font.render(f"Bombs : {self.player.bomb_count}", True, (255, 255, 255))
+        coin_text = self.font.render(f"Coins : {self.player.coin_count}", True, (255, 255, 255))
+
+        self.screen.blit(key_text, (10, 50))
+        self.screen.blit(bomb_text, (10, 80))
+        self.screen.blit(coin_text, (10, 110))
+
+    def draw_player_stats(self):
+        attack_text = self.font.render(f"Attack : {self.player.attack_stat}", True, (255, 255, 255))
+        attack_speed_text = self.font.render(f"Attack Speed : {self.player.attack_speed}", True, (255, 255, 255))
+        speed_text = self.font.render(f"Speed : {self.player.speed}", True, (255, 255, 255))
+
+        self.screen.blit(attack_text, (screen_width - 150, 10))
+        self.screen.blit(attack_speed_text, (screen_width - 150, 40))
+        self.screen.blit(speed_text, (screen_width - 150, 70))
+        
+    def draw(self):
+        self.draw_hearts()
+        self.draw_inventory()
+        self.draw_player_stats()
+
 def check_collision(player, enemies, dropthings):
     # 적들과 충돌한 shot 확인
     for shot in player.shots:
@@ -253,9 +288,6 @@ def check_collision(player, enemies, dropthings):
             if dropthing.type == "coin":
                 player.coin_count += 1
 
-        # print(f"동전 개수 : {player.coin_count}")
-        # print(f"열쇠 개수 : {player.key_count}")
-        # print(f"폭탄 개수 : {player.bomb_count}")
 
 # 초기화
 pygame.init()
@@ -338,6 +370,13 @@ dx = 0
 dy = 0
 mouse_pos = (0, 0)
 
+# 폰트 설정
+font = pygame.font.Font(None, 25)
+# 플레이어 하트 이미지 불러오기
+heart_img = pygame.image.load(os.path.join(current_path, "images/gui_player_heart.png")).convert_alpha()
+# GUI 객체 생성
+gui = GUI(player, font, heart_img, screen)
+
 # 이벤트 루프
 running = True # 게임이 진행중인가?
 while running:
@@ -387,6 +426,8 @@ while running:
     enemies.draw(screen) # 적 그리기
     items.draw(screen) # 아이템 그리기
     dropthings.draw(screen) # 드롭템 그리기
+
+    gui.draw() # GUI 그리기
 
     pygame.display.update() # 게임화면 다시 그리기
 
