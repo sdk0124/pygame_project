@@ -1,5 +1,6 @@
 import pygame, os
 from setting import *
+from shot import PlayerShot
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, position, enemies_group):
@@ -18,6 +19,7 @@ class Player(pygame.sprite.Sprite):
         self.health = 10 # 체력
         self.attack_stat = 2 # 공격력
         self.attack_speed = 2 # 공격속도 (기본 : 초당 2번 공격)
+        self.shot_speed = 5 # 플레이어 공격 이동속도
         self.speed = 3 # 이동속도
         self.move_direction = pygame.math.Vector2() # 플레이어 이동 방향
         self.watch_direction = "south" # 플레이어가 바라보는 방향 (기본값 : 남쪽)
@@ -28,6 +30,8 @@ class Player(pygame.sprite.Sprite):
         self.blink_interval = 0.1 # 깜박임 간격 (0.1초)
         self.last_attack_time = 0 # 마지막 공격 시각 기록
         self.enemies_group = enemies_group # 적 스프라이트들의 집합
+
+        self.shot_image = pygame.image.load(os.path.join(base_path, "images/attack.png")) # 플레이어 공격 이미지
 
         self.key_count = 0 # 열쇠 개수
         self.coin_count = 0 # 동전 개수
@@ -82,15 +86,15 @@ class Player(pygame.sprite.Sprite):
         self.collision('vertical')
     
         # 플레이어 이동 제한
-        if self.rect.left < MINIMUM_MOVEMENT_X:
-            self.rect.left = MINIMUM_MOVEMENT_X
-        elif self.rect.right > MAXIMUM_MOVEMENT_X:
-            self.rect.right = MAXIMUM_MOVEMENT_X
+        if self.rect.left < MINIMUM_X:
+            self.rect.left = MINIMUM_X
+        elif self.rect.right > MAXIMUM_X:
+            self.rect.right = MAXIMUM_X
 
-        if self.rect.top < MINIMUM_MOVEMENT_Y:
-            self.rect.top = MINIMUM_MOVEMENT_Y
-        elif self.rect.bottom > MAXIMUM_MOVEMENT_Y:
-            self.rect.bottom = MAXIMUM_MOVEMENT_Y
+        if self.rect.top < MINIMUM_Y:
+            self.rect.top = MINIMUM_Y
+        elif self.rect.bottom > MAXIMUM_Y:
+            self.rect.bottom = MAXIMUM_Y
 
     def collision(self, direction): # 플레이어 충돌 로직
         # 적들과 충돌 했을 때의 로직
@@ -122,10 +126,12 @@ class Player(pygame.sprite.Sprite):
                     self.take_damaged(enemy.attack_stat)    
 
     def update(self):
-        self.update_move_direction()
-        self.update_watch_direction()
-        self.move(self.speed)
-        self.check_isvincible(self.invincible_duration)
+        self.update_move_direction() # 플레이어 움직임 방향 업데이트
+        self.update_watch_direction() # 플레이어 시선 방향 업데이트
+        self.attack() # 플레이어 공격
+        self.shots.update() # 플레이어 탄환 움직임 업데이트
+        self.move(self.speed) # 플레이어 이동
+        self.check_isvincible(self.invincible_duration) # 플레이어 무적 체크
 
     def draw(self, screen):
         if not self.invincible: # 무적 상태가 아닐 경우
@@ -135,6 +141,8 @@ class Player(pygame.sprite.Sprite):
             elapsed_time = current_time - self.invincible_start_time
             if int(elapsed_time / (self.blink_interval * 1000)) % 2 == 0: # 이 조건에 만족할 때만 그린다. (깜박임 효과)
                 screen.blit(self.image, self.rect)
+
+        self.shots.draw(screen)
 
     def take_damaged(self, damage): # 플레이어가 적과 충돌 시 데미지를 입음.
         if not self.invincible: # 무적 상태가 아니면 공격을 받는다.
@@ -149,3 +157,16 @@ class Player(pygame.sprite.Sprite):
             if (current_time - self.invincible_start_time) >= (duration_time * 1000):
                 self.invincible = False
                 print("무적 상태 끝")
+
+    def attack(self):
+        mouse = pygame.mouse.get_pressed()
+        if (mouse[0] and self.check_can_attack()):
+            shot = PlayerShot(self.shot_image, (self.rect.centerx, self.rect.centery), self.shot_speed, self.watch_direction)
+            self.shots.add(shot)
+
+    def check_can_attack(self): # 공격 가능 확인 함수
+        current_time = pygame.time.get_ticks()
+        if (current_time - self.last_attack_time) >= ((1 / self.attack_speed) * 1000):
+            self.last_attack_time = current_time
+            return True
+        return False
